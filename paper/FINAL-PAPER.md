@@ -1,6 +1,6 @@
 # Agentic AI: A Comprehensive Study of Autonomous AI Agents, Their Architectures, Applications, Challenges, and Future Directions
 
-> DOCUMENT STATUS: Chapters 1–10 fully written; References (entries listed) and Appendices remain as skeleton notes. Experimental notes reproduce only values already recorded in `results/consolidated-results.md`, `results/consolidated-methodology.md`, `results/analysis.md`, and `results/figures-data.md`. No result, reference, DOI, or statistic is invented. Claims lacking a verified source are marked `[SOURCE NEEDED]`.
+> DOCUMENT STATUS: Final draft — Chapters 1–10 written; front matter finalized; appendices reference the committed artifacts. No result, reference, DOI, or statistic is invented. Claims lacking a verified source are marked `[SOURCE NEEDED]`.
 
 ---
 
@@ -8,7 +8,15 @@
 
 ### Title Page
 
-Note: Will carry the full title above, SPPU-affiliated engineering college name, department, academic year, and student/guide identification as per institute format. No technical claims here.
+Agentic AI: A Comprehensive Study of Autonomous AI Agents, Their Architectures, Applications, Challenges, and Future Directions
+
+Author: [Author Name — to be filled]
+Department: [Department Name — to be filled]
+College: [College Name, SPPU-affiliated — to be filled]
+University: Savitribai Phule Pune University (SPPU)
+Academic Year: [Academic Year — to be filled]
+
+No formatting specification is claimed to be officially mandated by SPPU; the document follows a conventional academic engineering research-paper structure and is kept easy to adapt should the college provide an official template.
 
 ### Certificate
 
@@ -24,11 +32,11 @@ Note: Thanks to guides, department, and open-source communities (Spring Boot, H2
 
 ### Abstract
 
-Note: Will summarize in ~200 words: (a) survey scope grounded in `paper/literature-foundation.md` (8 verified refs); (b) pilot method — same Student Management REST API task under 3 conditions with a fixed 12-test suite; (c) observed outcome — all conditions 12/12 evaluation (13/13 overall), iterations 3/1/1, single-run Maven times 22.045/21.753/26.963 s, 0 interventions; (d) explicit pilot caveat — n=1, no significance, no superiority claim.
+Autonomous AI agents — systems that pursue goals through reasoning, tool use, and environmental feedback — are surveyed alongside a small controlled pilot experiment comparing three agentic workflows. The review synthesizes eight verified sources covering agent taxonomies, the ReAct reasoning-and-acting paradigm, conversational multi-agent frameworks, and agent-evaluation methodology. The experiment assigns the same Student Management REST API construction task (Java 21, Spring Boot 4.1.1, H2) to three conditions — Direct LLM generation, a ReAct-style reason→act→observe loop, and a Manager/Developer/Tester multi-agent system — each judged by an identical fixed 12-test HTTP evaluation suite plus one context test. The observed result is uniform: all three conditions passed 12/12 evaluation tests (13/13 overall) with zero human interventions. Process records differ structurally — 3 logged iterations for Direct LLM (including two pre-harness Boot 4 compatibility fixes), 7 ReAct cycles, and 4 multi-agent interactions over 1 coordination cycle — with single-run Maven times of 22.045 s, 21.753 s, and 26.963 s. With one run per condition (n=1), no statistical significance is claimed and no architecture is ranked; the pilot demonstrates a reproducible evaluation methodology and feasibility on a scoped task, and its limits motivate larger replicated studies. Supporting artifacts — a frozen task specification, a shared Boot 4 test harness, hash-verified suite distribution, and full procedural logs — are committed alongside the paper as reusable method records. (221 words)
 
 ### Keywords
 
-Note: Agentic AI, AI Agents, ReAct, Multi-Agent Systems, LLM Agents, Agent Evaluation, Software Engineering Agents. Terms align with foundation sections A–F.
+Agentic AI, AI Agents, ReAct, Multi-Agent Systems, Large Language Models, Software Engineering, AI Evaluation, Autonomous Agents
 
 ### Table of Contents
 
@@ -36,15 +44,15 @@ Note: Generated from the chapter/section headings below.
 
 ### List of Figures
 
-Note: Planned figures (data in `results/figures-data.md`, single-run values only, captions must state n=1 and no error bars): test-pass comparison; execution-time comparison; iteration/cycle comparison.
+Figure 1 — Evaluation test-pass comparison (single-run values; n=1 per condition; no error bars). Figure 2 — Full-suite Maven execution-time comparison (single-run values; n=1; not a benchmark). Figure 3 — Process-level measurements (iterations, cycles, interactions; distinct units — do not aggregate). Source data: `results/figures-data.md`.
 
 ### List of Tables
 
-Note: Planned tables: fixed evaluation suite (12 tests); consolidated raw results; environment/versions (Java 21, Boot 4.1.1); harness compatibility changes.
+Table 1 — Experimental environment (Java 21, Spring Boot 4.1.1, Maven, H2). Table 2 — Evaluation test categories (12 tests + 1 context test). Table 3 — Consolidated experimental results (n=1 per condition). Table 4 — Process-level measurements (distinct units).
 
 ### List of Abbreviations
 
-Note: LLM, ReAct (Reasoning + Acting), API, REST, JPA, MVC, H2, CRUD, HTTP. Expand on first use in chapters.
+LLM — Large Language Model. ReAct — Reasoning and Acting. API — Application Programming Interface. REST — Representational State Transfer. JPA — Jakarta Persistence API. MVC — Model-View-Controller. CRUD — Create, Read, Update, Delete. H2 — Java-embedded relational database used here in-memory. RQ — Research Question.
 
 ---
 
@@ -218,7 +226,7 @@ The table below compares the architectures structurally. It records mechanisms a
 
 ### 5.1 Software Engineering
 
-Software construction is the best-supported application in this paper, grounded both in benchmark literature and in our own pilot. Test-verified benchmarks such as SWE-bench [8] and multi-environment evaluation such as AgentBench [7] establish the pattern our experiment follows at small scale: a scoped code task judged by an automated suite, with the ReAct loop supplying theedit–observe mechanism [1]. Our pilot instantiates it concretely — a CRUD REST API built and verified through hash-checked test runs. No claim is made that success on this task predicts success on larger codebases.
+Software construction is the most directly supported application in this paper, grounded both in benchmark literature and in our own pilot. Test-verified benchmarks such as SWE-bench [8] and multi-environment evaluation such as AgentBench [7] establish the pattern our experiment follows at small scale: a scoped code task judged by an automated suite, with the ReAct loop supplying the edit-observe mechanism [1]. Our pilot instantiates it concretely — a CRUD REST API built and verified through hash-checked test runs. No claim is made that success on this task predicts success on larger codebases.
 
 ### 5.2 Healthcare
 
@@ -390,6 +398,30 @@ On `experiment/multi-agent` (completed as `a030a19`): 12/12 evaluation tests pas
 
 Table 3 above reproduces the consolidated record verbatim: no averages across trials (there was one trial per condition), no derived percentages, no confidence intervals, and no ranking. Commit references are `60365d2` (baseline), `7c88e75` (common harness), `de03148` (A), `7298ade` (B), and `a030a19` (C). The table is the complete quantitative content of this chapter; everything that follows interprets process structure, not additional numbers.
 
+Figure 1 — Evaluation test-pass comparison (single-run values; n=1 per condition; no error bars; source: `results/figures-data.md`):
+
+```
+Evaluation passed (max 12):  Direct LLM [12] ████████████  ReAct [12] ████████████  Multi-Agent [12] ████████████
+Evaluation failed:           Direct LLM [0]  ReAct [0]  Multi-Agent [0]
+```
+
+Figure 2 — Full-suite Maven execution-time comparison (single-run values; n=1; one machine; not a benchmark):
+
+```
+Direct LLM [22.045 s]  ██████████████████████
+ReAct      [21.753 s]  █████████████████████
+Multi-Agent[26.963 s]  ███████████████████████████
+```
+
+Figure 3 — Process-level measurements (distinct units — do not aggregate; Direct LLM iterations include 2 pre-harness fixes):
+
+```
+Iterations:    Direct LLM [3]  ReAct [1]  Multi-Agent [1]
+Agent cycles:  ReAct [7] (not applicable elsewhere)
+Interactions:  Multi-Agent [4 over 1 cycle] (not applicable elsewhere)
+Interventions: 0 in all conditions
+```
+
 ### 7.6 Process-Level Observations
 
 The three conditions differ in logged structure, not in functional outcome. Direct LLM proceeded as a single pass with no cycles or roles. ReAct made its work explicit in 7 reason→action→observation cycles. Multi-Agent distributed the same work across 4 role interactions in 1 coordination cycle with an unexercised recovery path. Table 4 records these side by side with the warning that Direct LLM's iteration count of 3 reflects pre-harness history (two infrastructure fixes), not three rounds of functional repair, and must not be compared naively with the single post-harness iterations of Conditions B and C.
@@ -509,7 +541,7 @@ Answering the research questions directly: RQ1 — the three approaches all comp
 
 ## REFERENCES
 
-Note: Will list exactly the 8 verified references from `paper/literature-foundation.md` with full citations, years, venues/identifiers as recorded (no invented DOIs/venues). Any extra source added later must first be externally verified and recorded in the foundation file.
+Only the eight externally verified references are listed, with bibliographic fields exactly as recorded in `paper/literature-foundation.md`. No field has been invented; where the verified record supplies no venue, none is shown. Any future source must first be externally verified and recorded in the foundation file.
 
 - [1] Yao, Shunyu, et al. "ReAct: Synergizing Reasoning and Acting in Language Models." ICLR 2023. arXiv:2210.03629.
 - [2] Wu, Qingyun, et al. "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation." arXiv:2308.08155.
@@ -526,16 +558,16 @@ Note: Will list exactly the 8 verified references from `paper/literature-foundat
 
 ### Appendix A — Experimental Specification
 
-Note: Will reproduce `experiment-specification.md` scope (Student fields/validation, 5 endpoints, codes) or reference it verbatim; no paraphrase drift.
+The frozen task specification is committed as `experiment-specification.md`: a `Student` entity (auto-generated `Long id`; `name` required, not blank; `email` required, valid format; `age` required, 18–100 inclusive) with five endpoint groups — `POST /students` (201 + generated ID; invalid data rejected), `GET /students` (200 array; empty database → empty array), `GET /students/{id}` (200/404), `PUT /students/{id}` (200/404/validation error), `DELETE /students/{id}` (204/404). Package structure, class names, and error-body format were deliberately unspecified. The appendix reproduces that file by reference without paraphrase.
 
 ### Appendix B — Fixed Evaluation Test Suite
 
-Note: Will reference the 12-test suite design (hash `35E7D2E3…`), Boot 4 compat notes (new `TestRestTemplate` package, `@AutoConfigureTestRestTemplate`, `resttestclient`/`restclient`), and the hash-verified copy procedure.
+The suite is committed as `evaluation-tests/StudentApiEvaluationTest.java` (Boot 4 form: `org.springframework.boot.resttestclient.TestRestTemplate`, `@AutoConfigureTestRestTemplate`, test-scope `spring-boot-resttestclient`/`spring-boot-restclient`). Design: HTTP-level tests with `Map` payloads, per-test random e-mails, 4xx-range validation assertions. Distribution to each condition was by hash-verified copy (recorded prefix `35E7D2E3…`, full hashes in the condition reports).
 
 ### Appendix C — Experimental Logs
 
-Note: Will index `results/react/react-log.md` (7 cycles) and `results/multi-agent/agent-log.md` (4 interactions) plus the per-condition command histories.
+Procedure records are committed per condition: `results/react/react-log.md` (7 reason→action→observation cycles with commands and observations) and `results/multi-agent/agent-log.md` (4 interactions: Manager planning, Developer implementation, Tester execution and PASS report, Manager approval), together with the command histories and Surefire excerpts in `results/direct-llm/experiment-report.md`, `results/react/experiment-report.md`, and `results/multi-agent/experiment-report.md`.
 
 ### Appendix D — Raw Experimental Results
 
-Note: Will point to `results/consolidated-results.md`, `results/figures-data.md`, per-condition reports, and the five commit hashes (baseline `60365d2`, harness `7c88e75`, A `de03148`, B `7298ade`, C `a030a19`).
+Primary data: `results/consolidated-results.md` (the authoritative table), `results/figures-data.md` (chart-ready values), and the three condition reports. Version control: baseline `60365d2`, harness `7c88e75`, Condition A `de03148`, Condition B `7298ade`, Condition C `a030a19`.
