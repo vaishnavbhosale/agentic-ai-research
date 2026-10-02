@@ -1,6 +1,6 @@
 # Agentic AI: A Comprehensive Study of Autonomous AI Agents, Their Architectures, Applications, Challenges, and Future Directions
 
-> DOCUMENT STATUS: Chapters 1–2 fully written; Chapters 3–10, References (entries listed), and Appendices remain as skeleton notes. Experimental notes reproduce only values already recorded in `results/consolidated-results.md`, `results/consolidated-methodology.md`, `results/analysis.md`, and `results/figures-data.md`. No result, reference, DOI, or statistic is invented. Claims lacking a verified source are marked `[SOURCE NEEDED]`.
+> DOCUMENT STATUS: Chapters 1–5 fully written; Chapters 6–10, References (entries listed), and Appendices remain as skeleton notes. Experimental notes reproduce only values already recorded in `results/consolidated-results.md`, `results/consolidated-methodology.md`, `results/analysis.md`, and `results/figures-data.md`. No result, reference, DOI, or statistic is invented. Claims lacking a verified source are marked `[SOURCE NEEDED]`.
 
 ---
 
@@ -138,43 +138,43 @@ The existing literature, as verified, provides surveys and taxonomies of agentic
 
 ### 3.1 Definition
 
-Note: Will adopt the [3][4] definition (autonomous goal pursuit via perception–reasoning–action–tool use). Marks any alternative definition as `[SOURCE NEEDED]`.
+An AI agent is defined in this paper, following Sapkota et al. [3], as a single-actor system that perceives its context, reasons toward a goal, and acts through available tools. Agentic AI denotes systems whose autonomy extends across multi-step pursuits — maintaining goals, planning and replanning, coordinating sub-tasks, and integrating feedback over a full lifecycle [3, 4]. Alternative definitions exist in the broader literature; any definition other than the one adopted here would require its own verified source `[SOURCE NEEDED]`.
 
 ### 3.2 Goal-Oriented Behavior
 
-Note: Will explain goals/subgoals with our task as illustration (implement spec to green suite). Labels the illustration as our observation.
+Goal orientation distinguishes agents from single-turn generators: the agent accepts a goal (in our pilot, "implement the specification so the fixed suite passes"), decomposes it into sub-goals (model the entity, provide persistence, expose endpoints, verify), and treats each tool outcome as progress information rather than as a final answer. The decomposition itself may be implicit in a single pass or explicit in a written plan; what matters is that behavior is organized around the goal state and terminates on verifiable criteria rather than on producing text. This characterization follows the surveyed framing [3, 4]; the parenthetical illustration is our own experimental observation.
 
 ### 3.3 Planning
 
-Note: Will explain plan generation/delegation, illustrated by our Manager plan artifact (Condition C). General planning claims cite [4]; `[SOURCE NEEDED]` for formal planning-theory claims.
+Planning is the production of an ordered course of action before or during execution, together with delegation of its steps. In its simplest form it is a file-creation order (entity before repository before controller); in multi-agent settings it becomes an explicit artifact assigning work to roles, as in our Condition C Manager plan, which specified files, endpoint mappings, and acceptance checks before any code was written. General claims about planning architectures are drawn from the survey literature [4]; claims invoking formal planning theory (e.g., classical planners or optimality guarantees) would require a dedicated source `[SOURCE NEEDED]` and are not made here.
 
 ### 3.4 Reasoning
 
-Note: Will explain ReAct-style traces per [1]; distinguishes literature finding from our logged cycles.
+Reasoning here means the intermediate inference an agent performs between observations: diagnosing a compiler error, deciding which file to create next, or interpreting a test failure. The ReAct paradigm formalizes this as explicit verbal traces interleaved with actions [1], and that formalization is the only reasoning model asserted in this paper. Our logged ReAct cycles are presented as an application of it, not as independent evidence for its generality — a distinction maintained throughout.
 
 ### 3.5 Memory
 
-Note: Will cover working vs persistent memory at survey level per [4]. Our pilot used no explicit memory mechanism — will state this as observation; detailed memory architectures `[SOURCE NEEDED]`.
+Survey treatments distinguish working memory (the current context: specification text, recent tool output, the plan under execution) from persistent memory (retrievable records across runs, such as logs and reports) [4]. Our pilot relied on working memory within each run and on persistent artifacts across runs (frozen commits, hash-verified copies, Surefire logs), but implemented no explicit memory mechanism such as a vector store or episodic recall. Detailed claims about specific memory architectures are therefore marked `[SOURCE NEEDED]` and are not asserted.
 
 ### 3.6 Tool Use
 
-Note: Will cover file/Maven/test tools as the agent–environment interface in our pilot (reads, writes, `mvn -B test`, hash checks). General tool-use claims cite [1][2].
+Tools are the agent–environment interface: file readers and writers, the Maven build, the test runner, and hash verification in our pilot. Through tools, abstract decisions ("the controller is missing") become checkable operations ("create the file, compile, run the suite") [1, 2]. The set of tools bounds what the agent can possibly achieve, which is why our experiment fixes the tool set identically across conditions and records every tool action in its logs.
 
 ### 3.7 Observation and Feedback
 
-Note: Will cover Surefire/test-log feedback driving fix decisions per [1]; notes our runs needed zero corrections (first-run PASS in B and C).
+Observation is the environment's reply to an action — compiler diagnostics, HTTP status codes, assertion outcomes — and feedback is the use of that reply to steer the next step [1]. Test logs are the canonical feedback channel in software tasks: a validation warning resolving to an expected 4xx response confirms correct behavior, while a genuine failure would trigger diagnosis and repair. Our pilot's design provides this channel by construction; its exercise is documented in the condition logs.
 
 ### 3.8 Action
 
-Note: Will enumerate action types used (create/edit/run/inspect) as our observation; general action-space taxonomies `[SOURCE NEEDED]`.
+The actions available in our setting were reading files, creating and editing source files, running Maven commands, copying the evaluation suite with hash checks, and inspecting results — the full repertoire is enumerated in the condition reports as our own observation. General taxonomies of agent action spaces beyond this list are not asserted here `[SOURCE NEEDED]`.
 
 ### 3.9 Human-in-the-Loop
 
-Note: Will note our pilot recorded 0 interventions in all conditions; broader HITL patterns cite [2] (AutoGen human-in-the-loop); quantitative supervision claims `[SOURCE NEEDED]`.
+Human-in-the-loop arrangements let people supervise, approve, or interrupt autonomous runs, and conversational multi-agent frameworks explicitly support such oversight [2]. Our pilot was configured for full autonomy and recorded zero interventions in every condition; that figure describes this experiment only. Quantitative claims about supervision effectiveness or typical intervention rates would need dedicated human-factors sources `[SOURCE NEEDED]` and are not made.
 
 ### 3.10 Agent Lifecycle
 
-Note: Will outline specify→plan→implement→test→verify→report lifecycle as instantiated by our branches and logs. Presents it as our method, not a literature universal.
+Abstracting across conditions, the lifecycle instantiated in this work runs: specify (frozen task) → start from a frozen commit → plan (explicit in Conditions B and C, implicit in A) → implement → copy the suite with hash verification → test → verify the diff → report → commit. This sequence is presented as our method, documented in the procedural logs, not as a universal lifecycle claimed from the literature.
 
 ---
 
@@ -182,27 +182,35 @@ Note: Will outline specify→plan→implement→test→verify→report lifecycle
 
 ### 4.1 Single-Agent Architecture
 
-Note: Will describe the Direct LLM baseline (single pass, no loop/subagents) as our Condition A; general single-agent framing per [4].
+In the single-agent architecture, one model carries the entire loop: it reads the task, produces the implementation, and submits it for verification, without an explicit intermediate reasoning record or role separation. Our Condition A (Direct LLM baseline) instantiates this pattern — a single production-quality pass over entity, repository, and controller, followed by the standard test procedure [4]. Its virtue is simplicity and minimal coordination overhead; its weakness is opacity, since the reasoning behind each decision is not separately recorded.
 
 ### 4.2 Tool-Using Agents
 
-Note: Will describe compiler/test/hash tools as environment grounding, citing [1]; lists the exact commands from condition reports.
+A tool-using agent extends the single model with grounded operations on its environment. In our setting the tools were the file system (reads, writes, hash comparisons), the Maven build (`mvn -B test-compile`, `mvn -B test`), and the test reports themselves, which convert abstract intentions into checkable outcomes [1]. Tool use is what separates an agent from a pure generator: every consequential claim ("the endpoint returns 201") can be verified by executing the suite rather than by inspecting prose.
 
 ### 4.3 ReAct Architecture
 
-Note: Will detail the 7-cycle loop from `results/react/react-log.md`, grounded in Yao et al. [1]. No efficacy claim beyond the logged trace.
+The ReAct architecture structures behavior as repeating Reason → Act → Observe cycles [1]. Our Condition B logged seven such cycles: inspecting the specification and harness, creating the entity, creating the repository and controller, compiling, hash-copying the evaluation suite, running the full suite, and verifying the result. Each cycle's reasoning determined the next tool action, and each observation decided the cycle after. No claim is made here about ReAct's efficacy beyond the logged trace; the architecture is described, not ranked.
 
 ### 4.4 Multi-Agent Architecture
 
-Note: Will detail Manager→Developer→Tester→Manager (4 interactions, 1 cycle) from `results/multi-agent/agent-log.md`, grounded in Wu et al. [2]. Notes recovery loop was designed but unexercised (0 corrections).
+The multi-agent architecture distributes the same work across specialized roles coordinated through explicit handoffs [2]. Our Condition C used exactly three roles: the Manager analyzed requirements and issued a written plan with acceptance criteria; the Developer created the three implementation files; the Tester inspected the result, copied the suite with hash verification, executed it, and reported back. Four interactions over one coordination cycle completed the task, and the designed recovery path (Tester→Manager→Developer on failure) remained unexercised because the first run passed. Role separation makes each transition auditable at the price of coordination overhead.
 
 ### 4.5 Hybrid Architectures
 
-Note: Will note hybrids were NOT tested; any hybrid claim is `[SOURCE NEEDED]`. Keeps this section as future-facing only.
+Hybrid designs — for example, a ReAct loop executed inside each role of a multi-agent team, or a single agent that spawns subagents for subtasks — were not implemented or tested in this work. Any statement about their performance, prevalence, or best practices would therefore require sources beyond the current foundation `[SOURCE NEEDED]`, and none is made here. Hybrids are noted only as a natural direction for follow-up experiments.
 
 ### 4.6 Architecture Comparison
 
-Note: Will present only the recorded structural contrast (direct vs 7-cycle vs 4-interaction/1-cycle) with the explicit warning that functional outcomes were identical (13/13 each), so no ranking follows. Points to Chapters 7–8.
+The table below compares the architectures structurally. It records mechanisms and characteristic trade-offs at survey level; it does not rank the architectures, because the pilot's functional outcomes were identical across conditions (13/13 each) and any ranking would be unsupported.
+
+| Architecture | Main mechanism | Strengths | Limitations | Typical use |
+|---|---|---|---|---|
+| Single-agent | One model performs the whole task in a single pass | Simple; no coordination overhead; easy to run | Reasoning is implicit and unaudited; no built-in recovery roles | Small, well-specified construction tasks |
+| Tool-using | Single agent grounded through environment tools (files, build, tests) | Claims become verifiable by execution; less hallucination risk on checkable points | Bounded by its tool set; tool failures stall the run | Code and configuration tasks with fast feedback |
+| ReAct | Explicit Reason → Act → Observe cycles [1] | Auditable trace; observations steer each step | Extra logging and iteration overhead; trace quality varies | Multi-step tasks needing diagnosis from tool output |
+| Multi-agent | Role-specialized agents with structured handoffs [2] | Separation of concerns; checkable transitions; designed recovery path | Coordination overhead; recovery machinery idles when nothing fails | Larger tasks divisible into plan/build/verify |
+| Hybrid | ReAct loops nested inside multi-agent roles (not tested) | Potentially combines auditability with specialization `[SOURCE NEEDED]` | Unmeasured complexity and overhead `[SOURCE NEEDED]` | `[SOURCE NEEDED]` — proposed future work |
 
 ---
 
@@ -210,59 +218,59 @@ Note: Will present only the recorded structural contrast (direct vs 7-cycle vs 4
 
 ### 5.1 Software Engineering
 
-Note: Will ground in [8][7] plus our pilot (CRUD API, fixed suite, hash-verified runs). This is the only applications subsection with verified + observed support.
+Software construction is the best-supported application in this paper, grounded both in benchmark literature and in our own pilot. Test-verified benchmarks such as SWE-bench [8] and multi-environment evaluation such as AgentBench [7] establish the pattern our experiment follows at small scale: a scoped code task judged by an automated suite, with the ReAct loop supplying theedit–observe mechanism [1]. Our pilot instantiates it concretely — a CRUD REST API built and verified through hash-checked test runs. No claim is made that success on this task predicts success on larger codebases.
 
 ### 5.2 Healthcare
 
-Note: Survey-level mention only per [4]’s applications framing; specifics `[SOURCE NEEDED]`. No statistics will be stated.
+Healthcare applications of agentic AI (triage assistance, documentation, decision support) are mentioned at survey level in the reviewed literature [4]. This paper states only that opportunity exists as a surveyed direction; concrete capabilities, deployments, and performance figures are not covered by the verified foundation and are marked `[SOURCE NEEDED]`. No statistics are stated.
 
 ### 5.3 Finance
 
-Note: Same as 5.2 — survey-level per [4]; specifics `[SOURCE NEEDED]`.
+The same restriction applies to finance (analysis assistance, reporting automation, compliance support): surveyed as an application direction [4], with all specifics marked `[SOURCE NEEDED]` and no statistics stated.
 
 ### 5.4 Education
 
-Note: Same as 5.2 — survey-level per [4], plus our SPPU project-report context as our own framing; effectiveness claims `[SOURCE NEEDED]`.
+Education is likewise a surveyed application direction [4], and it is additionally our own institutional context: an SPPU-style project report in which agent-built software is evaluated reproducibly. That framing is our own; any claim about pedagogical effectiveness would need dedicated education-research sources `[SOURCE NEEDED]` and is not made.
 
 ### 5.5 Cybersecurity
 
-Note: Survey-level per [4]; technical claims (attack rates, tooling) `[SOURCE NEEDED]`.
+Defensive and offensive security uses of agents are surveyed directions [4]. Technical specifics — attack success rates, tooling comparisons, operational practice — are marked `[SOURCE NEEDED]`; none are stated here.
 
 ### 5.6 Robotics
 
-Note: Survey-level per [4]; specifics `[SOURCE NEEDED]`.
+Embodied and robotic applications are surveyed directions [4]. Specifics of platforms, control performance, or deployment maturity are marked `[SOURCE NEEDED]` and are not stated.
 
 ### 5.7 Hallucination
 
-Note: Will discuss as a surveyed challenge per [3][4] at framing level; incident rates or mitigation benchmarks `[SOURCE NEEDED]`.
+Hallucination — confident but false content — is discussed in the surveyed literature as a framing-level challenge for autonomous systems [3, 4]. Tool grounding of the kind used in our pilot (every functional claim checked by test execution) is one surveyed mitigation direction, but incident rates, severity distributions, and mitigation benchmarks are not in the verified foundation and are marked `[SOURCE NEEDED]`.
 
 ### 5.8 Error Propagation
 
-Note: Will discuss multi-step error accumulation conceptually; our pilot observed zero propagated failures (first-run passes in B/C) — labeled as observation; general rates `[SOURCE NEEDED]`.
+In multi-step runs, an early mistake can compound through later steps. This risk is discussed conceptually; general rates or formal models are marked `[SOURCE NEEDED]`. Our pilot is consistent with the concept without evidencing it either way: the runs that could have exhibited propagation instead passed on their first full execution, so no propagated failure was observed.
 
 ### 5.9 Reliability
 
-Note: Will discuss repeatability/variance concerns per [5][6]; notes our n=1 design cannot measure reliability — stated as limitation.
+Reliability concerns repeatability and variance across runs, the central theme of the evaluation surveys [5, 6]. Our design, with one run per condition, cannot measure reliability by construction — a limitation stated here rather than a finding. Any general reliability figure for agentic systems would need replicated-trial sources `[SOURCE NEEDED]`.
 
 ### 5.10 Prompt Injection
 
-Note: Survey-level framing per [3][4]; concrete attack data `[SOURCE NEEDED]`. Our task involved no adversarial inputs — will state this.
+Prompt injection and related manipulation of agent inputs are framing-level security concerns in the surveyed literature [3, 4]. Concrete attack data, defense evaluations, and prevalence figures are marked `[SOURCE NEEDED]`. It is recorded as an observation that our task involved no adversarial inputs, so this pilot contributes no evidence on the point.
 
 ### 5.11 Excessive Permissions
 
-Note: Conceptual risk of over-privileged tool use; our agents used scoped file/Maven/test tools only (observation); prevalence data `[SOURCE NEEDED]`.
+Agents wielding broad tool privileges risk unintended side effects. This is stated as a conceptual risk, not a measured one: prevalence and impact data are marked `[SOURCE NEEDED]`. As an observation, our agents operated with a scoped tool set (repository files, Maven, test execution) and produced no out-of-scope modifications.
 
 ### 5.12 Cost and Resource Usage
 
-Note: Will state no token/cost data was collected in any condition (per reports); any cost comparison is disallowed. Benchmarks for cost `[SOURCE NEEDED]`.
+No token, time-budget, or monetary-cost data was collected in any condition, as documented in all three condition reports; any cost comparison between architectures is therefore disallowed in this paper. External cost benchmarks, had they been needed, would be marked `[SOURCE NEEDED]`.
 
 ### 5.13 Governance
 
-Note: Survey-level per [3][4]; specific regulatory claims `[SOURCE NEEDED]`.
+Governance — policies, audit trails, and accountability for autonomous runs — is a survey-level concern [3, 4]. Specific regulatory requirements or compliance claims are marked `[SOURCE NEEDED]`. Our own audit practice (frozen commits, full logs, hash-verified suites) is offered as method illustration, not as a governance standard.
 
 ### 5.14 Security Considerations
 
-Note: Summary tying 5.7–5.13 together; will reaffirm that quantitative safety claims require `[ADDITIONAL VERIFIED SOURCE NEEDED]` (as in `paper/reference-map.md`) and none are asserted.
+In sum: the verified literature supports discussing hallucination, error propagation, reliability, prompt manipulation, permissions, cost, and governance as recognized challenge areas [3, 4], with evaluation rigor as the cross-cutting control [5, 6]. Quantitative safety or security claims — rates, guarantees, or certified mitigations — have no verified source in this paper's foundation (see `paper/reference-map.md`, which records `[ADDITIONAL VERIFIED SOURCE NEEDED]` for that class of claim) and none are asserted. Future possibilities in this chapter are possibilities only, not established facts.
 
 ---
 
