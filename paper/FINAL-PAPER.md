@@ -1,6 +1,6 @@
 # Agentic AI: A Comprehensive Study of Autonomous AI Agents, Their Architectures, Applications, Challenges, and Future Directions
 
-> DOCUMENT STATUS: Chapters 1–5 fully written; Chapters 6–10, References (entries listed), and Appendices remain as skeleton notes. Experimental notes reproduce only values already recorded in `results/consolidated-results.md`, `results/consolidated-methodology.md`, `results/analysis.md`, and `results/figures-data.md`. No result, reference, DOI, or statistic is invented. Claims lacking a verified source are marked `[SOURCE NEEDED]`.
+> DOCUMENT STATUS: Chapters 1–7 fully written; Chapters 8–10, References (entries listed), and Appendices remain as skeleton notes. Experimental notes reproduce only values already recorded in `results/consolidated-results.md`, `results/consolidated-methodology.md`, `results/analysis.md`, and `results/figures-data.md`. No result, reference, DOI, or statistic is invented. Claims lacking a verified source are marked `[SOURCE NEEDED]`.
 
 ---
 
@@ -278,59 +278,80 @@ In sum: the verified literature supports discussing hallucination, error propaga
 
 ### 6.1 Research Question
 
-Note: Will quote the欧冠 research question: how do Direct LLM, ReAct, and Multi-Agent perform on the same multi-step software task (pilot, n=1).
+Within this pilot experiment, the research question is: how do Direct LLM, ReAct, and Multi-Agent approaches perform on the same multi-step software-engineering task under a common evaluation suite? Two subordinate questions follow: what process-level differences can be observed between the three approaches, and what limitations arise when evaluating agent architectures with a small controlled task? No question beyond the reach of a single-run pilot is posed.
 
 ### 6.2 Experimental Objective
 
-Note: Will state the objective as producing comparable raw observations (not rankings): same task, same suite, full logs.
+The objective is to produce comparable raw observations, not rankings: the same task, the same suite, and full procedural logs for each of the three conditions. Success for the methodology is defined as identical starting conditions, identical pass/fail criteria, and complete records — regardless of which approach, if any, appears more economical in its trace.
 
 ### 6.3 Experimental Design
 
-Note: Will describe baseline freeze (`60365d2`), common harness (`7c88e75`), and branches `experiment/direct-llm`, `experiment/react`, `experiment/multi-agent` (with commit hashes from consolidated results).
+The design freezes history before varying the architecture. A baseline commit (`60365d2`, `EXPERIMENT-BASELINE-FROZEN`) captured the Maven project with its H2 configuration, frozen specification, and unfixed evaluation suite. A harness commit (`7c88e75`, `COMMON-EVALUATION-HARNESS-BOOT4`) added only the Boot 4 test-compatibility changes. Three branches diverged from controlled points: `experiment/direct-llm` (completed as `de03148`) from the baseline, and `experiment/react` (completed as `7298ade`) and `experiment/multi-agent` (completed as `a030a19`) from the harness. The experimental variable is therefore the agentic workflow and architecture; the task and the evaluation environment are controlled.
 
 ### 6.4 Controlled Variables
 
-Note: Will list frozen spec, fixed 12+1 tests, hash-verified copying, no criteria changes, 0 interventions.
+Held constant across conditions: the Student Management task and its frozen requirements; Java 21 and Spring Boot 4.1.1; the Maven environment and H2 configuration; the fixed 12-test evaluation suite plus the default context test; the evaluation criteria (exact status codes, 4xx-range validation assertions, no prescribed error-body schema); separate clean experiment branches; and zero human code intervention. The fixed suite was copied into `src/test` by hash-verified file copy in each condition, so its contents are identical by construction rather than by assumption.
 
 ### 6.5 Common Development Environment
 
-Note: Will record Java 21 (21.0.9), Boot 4.1.1, Maven 3.9.12, H2 in-memory `studentdb`/`create-drop`, Windows 11 single machine.
+All conditions ran in the environment recorded in Table 1. No condition received a different JDK, framework, database, or build tool.
+
+Table 1 — Experimental Environment (recorded values only):
+
+| Component | Value |
+|---|---|
+| Java version | 21 (`java.version=21`; runtime 21.0.9 observed) |
+| Spring Boot version | 4.1.1 (`spring-boot-starter-parent`) |
+| Build tool | Maven 3.9.12 (`mvn -B test`) |
+| Database | H2 in-memory, `jdbc:h2:mem:studentdb`, user `sa`, `ddl-auto=create-drop` |
+| Test client | `TestRestTemplate` via `spring-boot-resttestclient` + `spring-boot-restclient` (test scope), `@AutoConfigureTestRestTemplate` |
+| Machine | Single machine, Windows 11 (one run per condition) |
 
 ### 6.6 Student Management REST API Task
 
-Note: Will summarize Appendix A: Student fields/validation and the 5 endpoints with expected codes (201/200/404/204, 4xx validation).
+The task (see Appendix A) defines a `Student` entity — auto-generated `Long id`, `String name` required and not blank, `String email` required in valid format, `Integer age` required between 18 and 100 inclusive — and five endpoint groups: `POST /students` (valid → 201 with generated ID; invalid data rejected), `GET /students` (200 with a JSON array; empty database → empty array), `GET /students/{id}` (200 or 404), `PUT /students/{id}` (200, or 404, or validation error), and `DELETE /students/{id}` (204 or 404). The specification deliberately prescribes no package structure, class names, service layout, exception-handling implementation, or error-body format, so each approach solves the same requirements independently.
 
 ### 6.7 Fixed Evaluation Suite
 
-Note: Will summarize the 12 tests + context test, `TestRestTemplate`+`Map` design, random e-mails, `4xx`-range assertions; cites [5][6][7][8] as methodology precedent.
+The suite (`StudentApiEvaluationTest`, 12 tests) exercises the API exclusively over HTTP with `Map` payloads, so it depends on no implementation class names. Each test creates its own fixture data with a random e-mail address, making the tests independent of execution order, and validation failures assert the 4xx range rather than an exact code or body schema, since error formatting was left open. Table 2 lists the categories; the methodology precedent for fixed suites and replication discipline follows Yehudai et al. [5], Mohammadi et al. [6], Liu et al. [7], and Jimenez et al. [8].
+
+Table 2 — Evaluation Test Categories (12 tests + 1 context test):
+
+| Category | Tests | Expected outcomes |
+|---|---|---|
+| POST /students | valid student; invalid e-mail; blank name; age below 18 | 201 with generated ID; 4xx; 4xx; 4xx |
+| GET /students | all students; existing student; nonexistent student | 200 array; 200 with correct data; 404 |
+| PUT /students/{id} | valid update; nonexistent ID; invalid data | 200 with updated data; 404; 4xx |
+| DELETE /students/{id} | existing student; nonexistent student | 204 (then GET → 404); 404 |
+| Context | default `contextLoads` | passes |
 
 ### 6.8 Condition A — Direct LLM
 
-Note: Will record branch/commit, single-pass baseline, 3 iterations (1 build + 2 pre-harness Boot 4 fixes), no loops/subagents.
+Task → Direct LLM → implementation. On branch `experiment/direct-llm`, a single production-quality pass created the entity, repository, and controller directly, with no ReAct loop and no subagents. Three implementation/fix iterations were recorded — one initial build plus two Boot 4 harness-compatibility fixes (removed `TestRestTemplate` package; missing `RestTemplateBuilder` bean) — which must not be read as three business-logic correction cycles, since the harness did not yet exist when this condition ran.
 
 ### 6.9 Condition B — ReAct Agent
 
-Note: Will record branch/commit, 7 explicit cycles from `react-log.md`, 1 implementation iteration, first-run pass.
+Task → ReAct agent → Reason → Action → Observation → completion. On branch `experiment/react`, a single agent worked through seven explicit logged cycles (inspect; entity; repository + controller; compile check; hash-verified copy; full test run; verification and reporting), grounding each step in tool output per Yao et al. [1]. One implementation iteration was recorded, with zero corrections.
 
 ### 6.10 Condition C — Multi-Agent System
 
-Note: Will record branch/commit, Manager/Developer/Tester roles, 4 interactions over 1 cycle, 1 implementation iteration, first-run pass.
+Task → Manager → Developer → Tester → completion. On branch `experiment/multi-agent`, exactly three specialized subagents collaborated per Wu et al. [2]: the Manager analyzed requirements and issued a written plan with acceptance criteria; the Developer created the three implementation files; the Tester inspected the result, copied the suite with hash verification, executed it, and reported PASS. Four interactions over one coordination cycle were logged; the designed Tester→Manager→Developer recovery path was never triggered. One implementation iteration was recorded, with zero corrections.
 
 ### 6.11 Evaluation Metrics
 
-Note: Will list exactly the consolidated metrics (pass/fail, iterations, cycles/interactions, Maven times, interventions) plus documented unavailability of tool counts and wall timers.
+The metrics are exactly those of the consolidated table: evaluation tests passed/failed, overall tests passed/failed, implementation/fix iterations, agent cycles and interactions, full-suite Maven time, and human interventions. For tool/action counts and independent wall-clock time, the recorded value in every condition is "Not reliably measurable in the experimental environment." Unavailable values are never replaced with zero.
 
 ### 6.12 Experimental Procedure
 
-Note: Will give the step order: freeze → harness → branch per condition → implement → hash-copy suite → `mvn -B test` → fix loop if needed → verify diff → report → commit.
+The procedure ran identically per condition: freeze the start point → create the condition branch → implement → copy the suite with hash comparison → run `mvn -B test` → diagnose and fix the implementation only if the implementation fails (never the tests) → verify the diff → write the condition report → commit. The loop of implement → test → observe → correct → retest was available in all conditions; only Condition A exercised it, and only for harness compatibility.
 
 ### 6.13 Reproducibility
 
-Note: Will list artifacts enabling rerun: frozen commits, harness diff (2 deps + import + annotation), hash checks, Surefire logs, per-condition reports. Notes the self-hash documentation caveat from condition reports.
+A rerun can start from the recorded commits, apply the harness diff (two test-scope dependencies, one import change, one annotation), copy the suite with hash comparison (`35E7D2E3…D2BBCC50C` in Conditions B and C), and execute `mvn -B test`. Frozen starting points, full command histories, Surefire logs, and per-condition reports are committed on their branches. One documentation caveat is recorded in the condition reports: a report file cannot contain its own commit hash before that commit exists, so final hashes are verified via `git log` rather than embedded in advance.
 
 ### 6.14 Threats to Validity
 
-Note: Will summarize analysis §10: n=1, task ceiling, sequencing confound, single environment/task, measurement gaps.
+The design carries explicit threats, hidden from no reader: n=1 (one run per condition); a single software task of limited complexity; a single model configuration as provided; a task ceiling (all conditions passed, so correctness cannot discriminate); a sequencing confound (Condition A absorbed harness fixes); limited measurement of token and API cost; unavailable reliable tool-call counts; potential architecture-specific workflow effects (e.g., logging overhead differing by design); and limited generalizability beyond this task and configuration. Chapter 8 examines each in turn.
 
 ---
 
@@ -338,39 +359,63 @@ Note: Will summarize analysis §10: n=1, task ceiling, sequencing confound, sing
 
 ### 7.1 Functional Test Results
 
-Note: Will state the headline observation: 12/12 evaluation and 13/13 overall in every condition, `BUILD SUCCESS`, 0 failures/errors/skipped (data: `results/figures-data.md`).
+Within this pilot experiment, the observed results indicate identical functional outcomes: every condition passed the fixed evaluation suite 12/12 and the overall suite 13/13, each run ending in `BUILD SUCCESS` with 0 failures, 0 errors, and 0 skipped tests. The experiment does not establish anything beyond these recorded runs.
+
+Table 3 — Consolidated Experimental Results (recorded values only; n=1 per condition):
+
+| Metric | Direct LLM | ReAct | Multi-Agent |
+|---|---:|---:|---:|
+| Evaluation tests passed | 12 | 12 | 12 |
+| Evaluation tests failed | 0 | 0 | 0 |
+| Overall tests passed | 13 | 13 | 13 |
+| Overall tests failed | 0 | 0 | 0 |
+| Implementation/fix iterations | 3 | 1 | 1 |
+| Human interventions | 0 | 0 | 0 |
+| Full Maven test time | 22.045 s | 21.753 s | 26.963 s |
+| Tool/action count | Not reliably measurable in the experimental environment. | Not reliably measurable in the experimental environment. | Not reliably measurable in the experimental environment. |
 
 ### 7.2 Direct LLM Results
 
-Note: Will reproduce Condition A record: 12/0 and 13/0, 3 iterations, Maven 22.045 s, wall interval 17:53:28–18:06:06, 0 interventions, 2 Boot 4 errors encountered and fixed (package move + missing `RestTemplateBuilder`).
+On `experiment/direct-llm` (completed as `de03148`): 12/12 evaluation tests passed, 13/13 overall, `BUILD SUCCESS` in 22.045 s, approximate wall-clock interval 17:53:28–18:06:06, 0 human interventions. Three iterations were recorded: the initial implementation plus two Boot 4 compatibility fixes (the relocated `TestRestTemplate` package and the missing `RestTemplateBuilder` dependency). No business-logic correction cycle was required once the harness existed, and no test was modified, skipped, or weakened.
 
 ### 7.3 ReAct Results
 
-Note: Will reproduce Condition B record: 12/0 and 13/0, 1 iteration, 7 cycles, Maven 21.753 s (+6.456 s compile check), 0 interventions, no corrections needed.
+On `experiment/react` (completed as `7298ade`): 12/12 evaluation tests passed, 13/13 overall, `BUILD SUCCESS` in 21.753 s (with a prior `test-compile` check in 6.456 s), 0 human interventions. Seven ReAct cycles were logged and one implementation iteration was recorded, with zero corrections: compilation succeeded on the first attempt and the first full test run passed, showing only the expected validation warnings for the negative cases (blank name, malformed e-mail, underage input) resolving to 4xx responses.
 
 ### 7.4 Multi-Agent Results
 
-Note: Will reproduce Condition C record: 12/0 and 13/0, 1 iteration, 4 interactions/1 cycle (M2/D1/T1), Maven 26.963 s (surefire 15.19 s + 1.317 s), 0 interventions, 0 corrections.
+On `experiment/multi-agent` (completed as `a030a19`): 12/12 evaluation tests passed, 13/13 overall, `BUILD SUCCESS` in 26.963 s (Surefire: 15.19 s evaluation + 1.317 s context), 0 human interventions. Four agent interactions over one coordination cycle were logged (Manager 2, Developer 1, Tester 1), one implementation iteration was recorded, and zero correction cycles occurred: the Tester's first run reported PASS, so the Manager issued no correction request and the Developer performed no fix.
 
 ### 7.5 Consolidated Results
 
-Note: Will embed the consolidated table verbatim (no averages, no derived percentages) with commit references.
+Table 3 above reproduces the consolidated record verbatim: no averages across trials (there was one trial per condition), no derived percentages, no confidence intervals, and no ranking. Commit references are `60365d2` (baseline), `7c88e75` (common harness), `de03148` (A), `7298ade` (B), and `a030a19` (C). The table is the complete quantitative content of this chapter; everything that follows interprets process structure, not additional numbers.
 
 ### 7.6 Process-Level Observations
 
-Note: Will contrast structures without ranking: direct (no cycles) vs 7 ReAct cycles vs 4-interaction/1-cycle coordination; notes Direct LLM’s iteration count reflects pre-harness history.
+The three conditions differ in logged structure, not in functional outcome. Direct LLM proceeded as a single pass with no cycles or roles. ReAct made its work explicit in 7 reason→action→observation cycles. Multi-Agent distributed the same work across 4 role interactions in 1 coordination cycle with an unexercised recovery path. Table 4 records these side by side with the warning that Direct LLM's iteration count of 3 reflects pre-harness history (two infrastructure fixes), not three rounds of functional repair, and must not be compared naively with the single post-harness iterations of Conditions B and C.
+
+Table 4 — Process-Level Measurements (recorded values only; units differ — do not aggregate):
+
+| Measure | Direct LLM | ReAct | Multi-Agent |
+|---|---:|---:|---:|
+| Implementation/fix iterations | 3 (1 build + 2 harness fixes) | 1 (0 corrections) | 1 (0 corrections) |
+| Agent cycles | Not applicable | 7 ReAct cycles | Not applicable |
+| Agent interactions (Manager/Developer/Tester) | Not applicable | Not applicable | 2 / 1 / 1 (total 4) |
+| Coordination cycles | Not applicable | Not applicable | 1 |
+| Correction cycles | 0 business-logic corrections | 0 | 0 |
+| Human interventions | 0 | 0 | 0 |
 
 ### 7.7 Execution-Time Observations
 
-Note: Will list single-run times 22.045/21.753/26.963 s with the mandatory caption: one run, one machine, not a benchmark, no error bars or rank labels.
+The observed single-run Maven times are 22.045 s (Direct LLM), 21.753 s (ReAct), and 26.963 s (Multi-Agent), each on the same single machine. The experiment does not establish that any architecture is faster: with one sample per condition, any difference is indistinguishable from run-to-run noise in JVM startup, framework initialization, and the embedded database. No error bars are shown, no average is computed, and no timing rank is asserted.
 
 ### 7.8 Human Intervention
 
-Note: Will state 0 in all conditions; distinguishes this scoped-task feasibility signal from general supervision needs.
+The observed result is uniform: 0 interventions in every condition — no human wrote, selected, or repaired code. Within this pilot experiment, this indicates that a scoped, well-specified CRUD task with fast automated feedback could be completed autonomously in this environment. It does not establish supervision requirements for ambiguous, large, or safety-critical tasks, where intervention behavior would need separate measurement.
 
 ### 7.9 Experimental Limitations
 
-Note: Will restate measurement gaps (tool counts unavailable; no wall timer/token/cost data) and pointer to Chapter 8.
+This chapter's numbers are bounded by what was reliably measurable: pass/fail counts, iteration and cycle logs, Maven durations, and intervention counts. Tool and action counts were not reliably measurable in the experimental environment; independent wall-clock measurement was unavailable; token and API-cost data were not collected. These gaps are restated here so that Chapter 8 cannot inadvertently reason beyond them.
 
 ---
 
