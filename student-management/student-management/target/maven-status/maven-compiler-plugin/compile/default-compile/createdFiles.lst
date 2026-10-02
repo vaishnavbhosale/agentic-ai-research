@@ -1,0 +1,4 @@
+com\agenticai\studentmanagement\Student.class
+com\agenticai\studentmanagement\StudentController.class
+com\agenticai\studentmanagement\StudentManagementApplication.class
+com\agenticai\studentmanagement\StudentRepository.class
