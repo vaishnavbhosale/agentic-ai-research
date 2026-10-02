@@ -1,6 +1,6 @@
 # Agentic AI: A Comprehensive Study of Autonomous AI Agents, Their Architectures, Applications, Challenges, and Future Directions
 
-> DOCUMENT STATUS: Chapters 1–7 fully written; Chapters 8–10, References (entries listed), and Appendices remain as skeleton notes. Experimental notes reproduce only values already recorded in `results/consolidated-results.md`, `results/consolidated-methodology.md`, `results/analysis.md`, and `results/figures-data.md`. No result, reference, DOI, or statistic is invented. Claims lacking a verified source are marked `[SOURCE NEEDED]`.
+> DOCUMENT STATUS: Chapters 1–10 fully written; References (entries listed) and Appendices remain as skeleton notes. Experimental notes reproduce only values already recorded in `results/consolidated-results.md`, `results/consolidated-methodology.md`, `results/analysis.md`, and `results/figures-data.md`. No result, reference, DOI, or statistic is invented. Claims lacking a verified source are marked `[SOURCE NEEDED]`.
 
 ---
 
@@ -423,35 +423,35 @@ This chapter's numbers are bounded by what was reliably measurable: pass/fail co
 
 ### 8.1 Interpretation of Results
 
-Note: Will separate observations (identical passes; differing logged processes; single-run times) from interpretation, per `results/analysis.md` §1.
+The results admit two layers that must not be confused. The observational layer is fixed: all three conditions passed 12/12 evaluation tests and 13/13 overall with zero interventions, while logging different process structures (a single pass; 7 ReAct cycles; 4 multi-agent interactions over 1 cycle) and different single-run Maven times (22.045 s, 21.753 s, 26.963 s), as recorded in `results/analysis.md` §1. The interpretive layer — what these facts mean — is where restraint is required: with one run per condition, every process difference is a documented occurrence, not a measured tendency, and every timing difference is a single sample, not a benchmark. This chapter therefore treats each interpretation as provisional and ties it explicitly to the observation it rests on.
 
 ### 8.2 Functional Correctness
 
-Note: Will explain the ceiling effect: a suite all approaches pass cannot discriminate correctness; calls for harder future tasks, citing [7][8] as precedent for discriminative benchmarks.
+The fixed 12-test suite did not differentiate the three conditions: Direct LLM 12/12, ReAct 12/12, Multi-Agent 12/12. Within this pilot experiment, the observed result is a ceiling effect — the task, at this level of scope and with this suite, was solvable by every approach attempted. This limits what correctness can say here: it demonstrates feasibility on a scoped CRUD task, not relative capability. Discriminative benchmarks in the literature, such as AgentBench [7] and SWE-bench [8], exist precisely because harder, broader suites separate approaches that easy suites do not; our suite was designed for controlled comparability, not for discrimination, and its ceiling is a property of that design choice.
 
 ### 8.3 Process-Level Differences
 
-Note: Will discuss iteration/cycle contrasts with the sequencing confound stated plainly; no efficiency ranking.
+The process records do differ, and the differences are worth describing as long as they are not mistaken for proof of superiority. Direct LLM shows 3 recorded iterations, but two were Spring Boot 4 test-harness compatibility fixes (the relocated `TestRestTemplate` package and the missing `RestTemplateBuilder` dependency), not business-logic corrections — a sequencing artifact of running before the common harness existed. ReAct shows 7 explicit cycles with 1 implementation and 0 corrections; Multi-Agent shows 4 role interactions over 1 coordination cycle, likewise with 0 corrections. The honest reading is structural, not evaluative: one approach left no intermediate trace, one externalized its reasoning at each step, and one distributed the work across auditable handoffs. None of these facts establishes that any workflow is generally more efficient, because effort was not measured on a common scale and the sample is singular.
 
 ### 8.4 ReAct Behavior
 
-Note: Will value the 7-cycle audit trail for reproducibility while noting its benefit is unmeasured here since the outcome matched the baseline.
+The seven logged ReAct cycles (inspect; entity; repository plus controller; compile check; hash-verified copy; full test; verification) instantiate the Reason → Act → Observe loop of Yao et al. [1] in a concrete setting: each cycle's reasoning selected the next tool action, and each observation (compiler output, hash match, Surefire report) determined what followed. The value demonstrated here is traceability — an independent reader can replay why each step happened — rather than efficacy, since the final outcome matched the unlogged baseline. Whether the trace would pay for itself on a task requiring genuine diagnosis (where observations contradict expectations) is untested in this pilot and is recorded as an open question, not a finding.
 
 ### 8.5 Multi-Agent Coordination
 
-Note: Will value checkable handoffs (plan, file list, hash match, Surefire numbers) while noting recovery machinery idled (0 corrections), so failure-handling quality is untested.
+The Manager/Developer/Tester workflow of Wu et al. [2], instantiated as plan → implement → test → review, executed cleanly: the plan specified files and acceptance criteria, the Developer produced exactly those files, and the Tester returned hash equality plus a PASS report with exact Surefire numbers, after which the Manager approved completion. The checkable handoffs are the demonstrated strength. The designed recovery machinery — Tester failure report → Manager correction request → Developer fix → retest — idled throughout (0 corrections), so this pilot provides no evidence about coordination quality under failure. A multi-agent run that never needs its repair loop cannot speak to how well that loop repairs.
 
 ### 8.6 Relationship to Previous Research
 
-Note: Will tie our loop to Yao et al. [1], roles to Wu et al. [2], and benchmarking practice to [5][6][7][8]; marks any beyond-survey claim `[SOURCE NEEDED]`.
+The pilot's components map directly onto verified precedents without extending them. Its loop follows Yao et al. [1]; its role separation follows Wu et al. [2]; its fixed-suite discipline and its refusal to claim significance from single runs follow the evaluation methodology surveyed by Yehudai et al. [5] and Mohammadi et al. [6]; and its test-verified code-task format follows the benchmarking pattern of Liu et al. [7] and Jimenez et al. [8]. Any resemblance beyond this mapping — for instance, to formal planning theory, memory architectures, or quantitative safety results — would need sources beyond the current foundation `[SOURCE NEEDED]` and is not asserted.
 
 ### 8.7 Implications
 
-Note: Will limit implications to: (a) the harness/logging method is shown workable; (b) routine scoped CRUD is autonomously completable here; (c) no deployment or pedagogy generalization is licensed.
+Three implications are licensed, and only these. First, the method works: a frozen specification, a shared Boot 4 harness, hash-verified suite copying, and full procedural logs produced directly comparable raw observations across three architectures. Second, routine scoped construction — a validated CRUD API with fast automated feedback — proved autonomously completable in this environment under all three workflows. Third, nothing here licenses deployment, pedagogical, or procurement generalizations: no cost data, no adversarial testing, no multi-task evidence, and no replication exist in this record.
 
 ### 8.8 Threats to Validity
 
-Note: Will expand analysis §10: n=1, ceiling, sequencing, single env/task, gaps, researcher degrees of freedom.
+The threats are stated without softening, following `results/analysis.md` §10. The sample is n=1 per condition, admitting no variance estimate. The task is single, of limited complexity, and set a ceiling that removes discriminative power. The model configuration is singular as provided. The run order confounds the iteration comparison, as documented. Token and API-cost measurement is absent, reliable tool-call counts were unavailable, and architecture-specific workflow effects (such as logging overhead) cannot be separated from task effort. Generalizability beyond this stack, machine, and task is therefore not established, and researcher degrees of freedom in harness repair — though functionally neutral and shared by later conditions — are disclosed rather than minimized.
 
 ---
 
@@ -459,35 +459,35 @@ Note: Will expand analysis §10: n=1, ceiling, sequencing, single env/task, gaps
 
 ### 9.1 Larger Benchmarks
 
-Note: Will propose harder suites that discriminate (more endpoints, auth, pagination, concurrency) — our proposal, citing [7][8] as precedent; no invented difficulty statistics.
+Future work should employ larger, more discriminative suites — additional endpoints, authentication, pagination, concurrent access, and adversarial inputs — that can separate approaches where a 12-test suite cannot. AgentBench [7] and SWE-bench [8] are the precedents for such benchmarks; no difficulty statistics or expected score gaps are asserted here, since none were measured.
 
 ### 9.2 Multiple Software Tasks
 
-Note: Will propose multi-domain tasks; coverage claims beyond our one task `[SOURCE NEEDED]` if asserted as literature.
+A single CRUD task cannot represent software engineering. Follow-up studies should span multiple domains (for example, stateful workflows, integration with external services, and defect repair in existing codebases). Coverage claims for domains beyond the one tested would require domain literature and are marked `[SOURCE NEEDED]` where they would be asserted as established rather than proposed.
 
 ### 9.3 Multiple Models
 
-Note: Will propose cross-model replication; model-comparison statistics `[SOURCE NEEDED]` (none asserted).
+Repeating the same frozen protocol across models would test whether the observed patterns are model-specific. Model-comparison statistics are marked `[SOURCE NEEDED]` because none were collected; the direction is proposed, not evidenced.
 
 ### 9.4 Repeated Trials
 
-Note: Will propose pre-registered repeated runs with variance/CIs per [5][6]; notes none were computed here.
+The most urgent extension is replication: pre-registered repeated trials of each condition with reported variance and confidence intervals, following the benchmarking discipline surveyed by Yehudai et al. [5] and Mohammadi et al. [6]. No such intervals are computed in this paper, and none are implied.
 
 ### 9.5 Token and Cost Evaluation
 
-Note: Will propose metering tokens/time/cost; states none was collected — labeled gap, not data.
+Reliable metering of tokens, API calls, wall-clock budgets, and monetary cost would allow genuine efficiency comparison. None of these was collected here — a documented gap, not data — so cost-aware evaluation is proposed as instrumentation to build, not as a result to report.
 
 ### 9.6 Safety Evaluation
 
-Note: Will propose adversarial/permission-scope tests; quantitative safety targets `[SOURCE NEEDED]`.
+Adversarial prompt handling, permission scoping, and side-effect auditing should be evaluated deliberately, since the present task contained no adversarial inputs. Quantitative safety targets or guarantees would require verified safety sources and are marked `[SOURCE NEEDED]`; they are proposed as evaluation to design, not forecasts to state.
 
 ### 9.7 Human-Agent Collaboration
 
-Note: Will propose intervention-rate studies building on [2]’s human-in-the-loop; effectiveness numbers `[SOURCE NEEDED]`.
+Intervention-rate studies — how often, at which points, and to what effect humans must step in — would extend the present zero-intervention observation into a real measure, building on the human-in-the-loop support described by Wu et al. [2]. Effectiveness figures for such collaboration are marked `[SOURCE NEEDED]` and are not asserted.
 
 ### 9.8 Standardized Agent Evaluation
 
-Note: Will propose fixed-harness reuse (frozen spec, hash-verified suites, full logs) as our methodological contribution, citing [5][6] for standards.
+The methodological contribution proposed for reuse is the evaluation discipline itself: frozen specifications, shared Boot-version harnesses, hash-verified suite copying, full procedural logs, and raw-data-first reporting, consistent with the standards surveyed in [5] and [6]. Each item above is a proposed research direction, not a prediction presented as fact.
 
 ---
 
@@ -495,15 +495,15 @@ Note: Will propose fixed-harness reuse (frozen spec, hash-verified suites, full 
 
 ### 10.1 Summary
 
-Note: Will recap survey + pilot in one paragraph with the four headline numbers (12/12 ×3; 13/13 ×3; iterations 3/1/1; times 22.045/21.753/26.963 s) and the n=1 caveat.
+This paper surveyed agentic AI foundations, architectures, and evaluation from eight verified sources, and piloted a controlled comparison in which Direct LLM, ReAct, and Multi-Agent approaches implemented the same Student Management REST API under an identical fixed suite. The headline numbers are: 12/12 evaluation tests and 13/13 overall tests passed in every condition; implementation iterations of 3, 1, and 1 (with the first figure including pre-harness infrastructure fixes); process traces of a single pass, 7 ReAct cycles, and 4 multi-agent interactions over 1 coordination cycle; single-run Maven times of 22.045 s, 21.753 s, and 26.963 s; and zero human interventions — all with n=1 per condition and no significance testing.
 
 ### 10.2 Contributions
 
-Note: Will list: (a) survey synthesis from 8 verified refs; (b) frozen task + fixed suite + Boot 4 harness method; (c) three fully logged pilot runs; (d) raw-data + analysis artifacts. Labels each as our work vs literature.
+The contributions are framed conservatively, matching only what was done: (1) a structured review of Agentic AI architectures and applications from the verified literature; (2) a controlled pilot methodology for comparing agent workflows with frozen starts and identical criteria; (3) a reproducible Student Management REST API evaluation task with its Boot 4 harness; (4) a fixed architecture-independent 12-test suite with hash-verified distribution; (5) empirical observations from the three implemented conditions with full logs; and (6) an explicit record of limitations and evaluation requirements for future studies. No new algorithm, framework, benchmark, or breakthrough is claimed.
 
 ### 10.3 Final Conclusions
 
-Note: Will close with the only licensed conclusion: the pilot demonstrates feasibility and method, not superiority — all approaches passed; differences are process-logged observations from single runs requiring future replication before any general claim.
+Answering the research questions directly: RQ1 — the three approaches all completed the evaluated task successfully, and functional correctness did not differentiate them in this pilot; RQ2 — process-level differences were observed (single pass versus 7 logged cycles versus 4 interactions over 1 cycle, with the stated sequencing caveat on iteration counts); RQ3 — a small single-task, single-run design can demonstrate feasibility and method but is insufficient to establish general superiority, efficiency, or reliability. Larger and repeated experiments — multiple tasks, multiple trials and models, discriminative suites, cost metering, safety evaluation, and human-in-the-loop measurement — are required before any general claim about agentic architectures can be responsibly made.
 
 ---
 
