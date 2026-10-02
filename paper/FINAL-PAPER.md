@@ -1,6 +1,6 @@
 # Agentic AI: A Comprehensive Study of Autonomous AI Agents, Their Architectures, Applications, Challenges, and Future Directions
 
-> DOCUMENT STATUS: skeleton only. Headings plus concise content notes. Chapters are NOT fully written yet. All experimental notes below reproduce only values already recorded in `results/consolidated-results.md`, `results/consolidated-methodology.md`, `results/analysis.md`, and `results/figures-data.md`. No result, reference, DOI, or statistic is invented. Claims lacking a verified source are marked `[SOURCE NEEDED]`.
+> DOCUMENT STATUS: Chapters 1–2 fully written; Chapters 3–10, References (entries listed), and Appendices remain as skeleton notes. Experimental notes reproduce only values already recorded in `results/consolidated-results.md`, `results/consolidated-methodology.md`, `results/analysis.md`, and `results/figures-data.md`. No result, reference, DOI, or statistic is invented. Claims lacking a verified source are marked `[SOURCE NEEDED]`.
 
 ---
 
@@ -52,39 +52,45 @@ Note: LLM, ReAct (Reasoning + Acting), API, REST, JPA, MVC, H2, CRUD, HTTP. Expa
 
 ### 1.1 Background
 
-Note: Will frame autonomous agents as goal-directed systems using perception, reasoning, tools, and feedback, citing Sapkota et al. [3] and Abou Ali et al. [4]. Our pilot is introduced as a small controlled illustration, not as proof of general properties.
+Recent progress in large language models has shifted attention from single-turn text generation toward systems that act autonomously to achieve goals. Such autonomous agents perceive their environment, reason over observations, invoke tools, and adjust their behavior on the basis of feedback [3, 4]. Unlike a conventional classifier or a conversational assistant that responds to one prompt at a time, an agent is expected to carry a multi-step task through to completion, for example by reading files, editing code, running commands, and interpreting the results. This paper studies that class of systems — referred to here as agentic AI, following the taxonomy of Sapkota et al. [3] and the survey of Abou Ali et al. [4] — through two complementary contributions: a synthesis of the established literature, and a small controlled pilot experiment in which three different agentic approaches solve the same software-engineering task. The pilot is presented strictly as an illustration of a reproducible comparison method, not as evidence for general properties of agentic systems.
 
 ### 1.2 Evolution from Traditional AI to Agentic AI
 
-Note: Will trace rule-based/ML systems → LLM single-turn inference → tool-using agents → agentic systems, citing [3][4]. Will keep the distinction between established survey findings and our own observations explicit.
+Traditional artificial intelligence systems were typically built for a fixed task with a fixed input-output contract: rule-based programs encoded expert knowledge explicitly, while classical machine-learning models learned a mapping from training data to predictions. Both operated within narrowly defined boundaries and could not easily decompose novel problems, use external tools, or recover from their own mistakes. The arrival of large language models changed the interface — a single model could follow open-ended instructions — but single-turn inference on its own still lacked persistence, environment interaction, and error recovery. Tool-using agents closed part of this gap by giving models access to file systems, compilers, test runners, and web interfaces, and agentic AI, as surveyed by Abou Ali et al. [4] and taxonomized by Sapkota et al. [3], denotes the resulting systems that combine goal-directed planning, reasoning, memory, tool use, and observation into an autonomous loop. Throughout this paper, statements about this evolution drawn from the literature are cited as such, while statements about our own pilot are labeled as our observations.
 
 ### 1.3 Problem Statement
 
-Note: Will state the gap: agent-architecture claims often lack head-to-head controlled comparisons on a fixed software task with identical evaluation. Our pilot addresses one instance (Student Management REST API, frozen spec, fixed 12-test suite).
+Architectural proposals for agents — single-pass generation, reasoning-and-acting loops, and multi-agent collaboration — are frequently compared informally or on different tasks with different success criteria, which makes it difficult to attribute any observed difference to the architecture itself. What is needed, and what this paper pilots at small scale, is a head-to-head comparison in which the task, the starting code, the environment, and the pass/fail criteria are held constant while only the agentic approach varies. Concretely, this paper compares three approaches — Direct LLM generation, a ReAct-style reasoning/action loop, and a multi-agent Manager/Developer/Tester system — on one identical task: a Student Management REST API defined by a frozen specification and judged by a fixed 12-test HTTP evaluation suite (plus one default context test).
 
 ### 1.4 Motivation
 
-Note: Will motivate from engineering-education and practice viewpoints: SPPU-style project need for reproducible evaluation of agent-built software. Will avoid inventing adoption statistics — `[SOURCE NEEDED]` for any deployment-scale claim.
+The motivation is both pedagogical and practical. In an engineering-college setting, students increasingly complete software tasks with LLM assistance, yet project evaluation still needs a reproducible basis for judging what was built and how. A frozen task specification paired with an automated, hash-verified test suite provides exactly such a basis, and the same apparatus doubles as a research instrument for comparing agentic strategies fairly. No claim is made here about the scale of industrial adoption of these techniques.
 
 ### 1.5 Research Questions
 
-Note: Will list: RQ1 architectures in literature; RQ2 how Direct LLM vs ReAct vs Multi-Agent perform on the same scoped task (pilot, n=1); RQ3 what process differences (iterations, cycles, coordination, time) are observed; RQ4 limits of a single-run pilot.
+The experiment is designed to answer only the following questions, and no additional questions beyond its reach are posed:
+
+RQ1: How do Direct LLM, ReAct, and Multi-Agent approaches perform on the same multi-step software-engineering task under a common evaluation suite?
+
+RQ2: What process-level differences can be observed between the three approaches?
+
+RQ3: What limitations arise when evaluating agent architectures using a small controlled software-engineering task?
 
 ### 1.6 Objectives
 
-Note: Will list: survey foundations/architectures/evaluation from 8 verified refs; run the 3-condition pilot with frozen harness; record raw observations without significance testing; document threats and future work.
+The objectives of this paper, each directly achievable within its scope, are: (i) review Agentic AI concepts and architectures from the verified literature; (ii) examine the ReAct and multi-agent approaches in particular; (iii) review existing agent-evaluation approaches; (iv) design a controlled pilot experiment with a frozen task and fixed suite; (v) compare the three approaches on the same Student Management REST API task; (vi) evaluate functional correctness together with observable process metrics (iterations, cycles, coordination records, and recorded run times); and (vii) identify limitations and future research directions warranted by the pilot.
 
 ### 1.7 Scope
 
-Note: Will scope to: survey of listed literature; one Spring Boot CRUD task; Java 21 / Boot 4.1.1 / H2; fixed suite; one run per condition on one machine. Out of scope: multi-model, multi-task, and cost/token studies — `[SOURCE NEEDED]` if broader coverage is later claimed.
+The study focuses on software-engineering agents and a single representative task: a Java 21 / Spring Boot 4.1.1 Student Management REST API backed by an in-memory H2 database, implemented under a frozen specification and verified by a fixed HTTP-level test suite. The survey component covers the eight verified references in `paper/literature-foundation.md`. Studies involving other task domains, other technology stacks, other models, or cost and token metering are outside the scope of this paper.
 
 ### 1.8 Limitations
 
-Note: Will state upfront: n=1 per condition; task ceiling (all passed); sequencing confound (Condition A absorbed harness fixes); no effort/cost instrumentation; single environment. Points to Chapter 8 and `results/analysis.md` §10–11.
+The pilot has the following explicit limitations, documented here so that no later chapter can overstate the findings: it covers one task; it uses one model configuration as provided by the environment; it comprises one experimental run per condition (n=1); the sample size therefore supports no statistical significance testing; cost and token measurement is absent because no reliable counters were exposed; and generalizability beyond this task, stack, and machine is not established. The task itself exhibited a ceiling effect (all conditions passed), and the run order introduced a sequencing confound (Condition A absorbed the Boot 4 test-harness fixes that Conditions B and C inherited). These points are examined further in Chapter 8.
 
 ### 1.9 Organization of the Paper
 
-Note: Will map Chapters 2–10 and Appendices A–D to the files listed in the task brief.
+Chapter 2 reviews the literature; Chapter 3 systematizes agentic AI fundamentals; Chapter 4 details the architectures; Chapter 5 surveys applications, challenges, and security; Chapter 6 documents the experimental methodology; Chapter 7 reports the observed results; Chapter 8 discusses their interpretation; Chapter 9 outlines future directions; and Chapter 10 concludes. The References list the eight verified sources, and Appendices A–D carry the experimental specification, the fixed evaluation suite, the experimental logs, and the raw results respectively.
 
 ---
 
@@ -92,39 +98,39 @@ Note: Will map Chapters 2–10 and Appendices A–D to the files listed in the t
 
 ### 2.1 Traditional AI and LLM-Based Systems
 
-Note: Will summarize the shift from static models to interactive LLM use, citing [3][4]. Will not invent benchmark numbers.
+Traditional AI systems — expert systems with hand-encoded rules and machine-learning models trained for a single predictive mapping — performed reliably within their specified envelope but could not readily decompose unfamiliar problems, operate software tools, or revise their own plans after failure. Large language models broadened the interface by conditioning open-ended generation on natural-language instructions, yet a single forward pass still lacks task persistence and environmental grounding. The surveyed literature characterizes the subsequent step as the coupling of such models with perception, memory, and tool interfaces so that behavior extends across multiple steps [3, 4]. This section reports that characterization as established survey framing; no benchmark figures are asserted here.
 
 ### 2.2 AI Agents
 
-Note: Will define single-actor tool-using agents per Sapkota et al. [3]. Maps to foundation §A.
+Following the taxonomy of Sapkota et al. [3], an AI agent is understood here as a single-actor system that perceives its context, reasons toward a goal, and acts through available tools — for example, reading and writing files, executing shell commands, or querying an application under test. The agent receives observations (command output, test results, error messages) and conditions its next action on them. This definition is the working meaning of "agent" throughout the paper and the unit of analysis for Conditions A and B.
 
 ### 2.3 Agentic AI
 
-Note: Will define multi-step autonomous systems per [3][4]. Keeps our usage consistent with the taxonomy.
+Agentic AI, in the same taxonomy, denotes systems whose autonomy spans extended multi-step pursuits rather than isolated tool calls: they maintain goals, plan and replan, coordinate sub-tasks, and integrate feedback over a full lifecycle [3, 4]. Abou Ali et al. [4] survey how such systems are architected, where they are applied, and which research directions remain open. Our usage follows this survey-level meaning, and our Condition C (a Manager/Developer/Tester collaboration) is presented as one concrete instance of it — an experimental observation, not a redefinition.
 
 ### 2.4 Agent Architectures
 
-Note: Will survey single-agent vs conversational multi-agent designs per Abou Ali et al. [4], Yao et al. [1], Wu et al. [2].
+The surveyed architectures span two broad families [4]. In the single-agent family, one model carries the whole loop of reasoning, acting, and observation. In the multi-agent family, specialized agents with distinct roles collaborate through structured conversation, sharing plans, intermediate artifacts, and verification reports [2]. The ReAct paradigm of Yao et al. [1] is the canonical example of the first family in this paper, and the conversational multi-agent framework of Wu et al. [2] is the canonical example of the second; Abou Ali et al. [4] provide the survey backbone relating them.
 
 ### 2.5 ReAct
 
-Note: Will describe the reasoning→action→observation loop from Yao et al. [1] — the sole verified primary source here; theoretical basis of our Condition B (7 logged cycles).
+Yao et al. [1] introduce ReAct as the synergistic interleaving of verbal reasoning traces with actions directed at an external environment, whose observations are then fed back into subsequent reasoning. The loop — reason, act, observe, repeat — grounds the model's problem solving in concrete tool outcomes rather than unaided generation, and it is directly applicable to software tasks where compilation and test output serve as observations. This is the sole verified primary source for the ReAct paradigm used in this paper, and it is the theoretical basis of our Condition B, which logged seven explicit reason→action→observation cycles.
 
 ### 2.6 Multi-Agent Systems
 
-Note: Will describe role-specialized conversational agents from Wu et al. [2] — sole verified primary source; basis of our Condition C (Manager/Developer/Tester, 1 coordination cycle).
+Wu et al. [2] propose enabling LLM applications through multi-agent conversation: agents with distinct roles and capabilities collaborate via dialogue, divide labor, critique intermediate results, and incorporate human input and tool use. Role separation makes each transition — delegation, handoff, and verification — an inspectable artifact. This is the sole verified primary source for multi-agent organization used in this paper, and it is the theoretical basis of our Condition C, instantiated as Manager (planning and review), Developer (implementation), and Tester (test execution and reporting) with one logged coordination cycle.
 
 ### 2.7 Agent Evaluation
 
-Note: Will cover fixed suites, pass/fail criteria, replication needs from Yehudai et al. [5], Mohammadi et al. [6], Liu et al. [7], Jimenez et al. [8]. Directly motivates our frozen 12-test suite and no-significance stance.
+How agents should be judged is itself surveyed in the verified literature. Yehudai et al. [5] survey evaluation dimensions and methodological considerations for LLM-based agents, while Mohammadi et al. [6] survey benchmarking practice with emphasis on comparison methodology and the replication needed before significance can be claimed. Task-grounded benchmarks provide the precedents: AgentBench evaluates language models as agents across diverse environments [7], establishing the pattern of fixed tasks with uniform scoring that our frozen 12-test suite follows at small scale. These sources directly motivate three of our controls: identical pass/fail criteria across conditions, hash-verified copying of the evaluation suite, and the refusal to perform significance testing on single runs.
 
 ### 2.8 Software Engineering Agents
 
-Note: Will cover test-verified code benchmarks per Jimenez et al. [8] and Liu et al. [7], with ReAct tool-use context from [1]. Our pilot is positioned as a small instance of this paradigm.
+The closest precedent for our pilot is test-verified software-task benchmarking. SWE-bench measures whether language models can resolve real-world GitHub issues, with resolution judged by tests [8]; AgentBench likewise includes settings in which agents operate on code [7]. The ReAct loop supplies the mechanism by which such tasks are typically approached — compiler and test output as observations guiding the next edit [1]. Our Student Management REST API pilot is positioned explicitly as a small instance of this paradigm: one scoped construction task, judged by an automated suite, executed identically across conditions. It is not presented as a replacement for large-scale benchmarks such as [7] and [8].
 
 ### 2.9 Research Gap
 
-Note: Will state the gap our pilot targets: few head-to-head same-task/same-suite comparisons of Direct vs ReAct vs Multi-Agent with full logs. Will not overclaim — notes n=1 and single task as remaining gaps.
+The existing literature, as verified, provides surveys and taxonomies of agentic AI [3, 4], the ReAct architectural approach [1], the AutoGen multi-agent framework [2], agent-evaluation methodology [5, 6], and software-task benchmarks [7, 8]. What it does not provide — and what this paper pilots rather than claims to close — is a fully logged, same-task, same-suite, same-environment comparison of a direct-generation baseline against a ReAct agent and a role-separated multi-agent system, with frozen starting points, hash-verified evaluation copying, and per-condition process records. This pilot fills exactly one cell of that larger matrix: one task, one stack, one run per condition. It leaves open replication across tasks, models, and trials, larger and more discriminative suites, and cost and safety instrumentation, all of which are recorded as future work rather than asserted results.
 
 ---
 
